@@ -42,7 +42,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = ('bio', 'location', 'birth_date', 'profile_picture')
 
 class CustomUserDetailsSerializer(UserDetailsSerializer):
-    profile = UserProfileSerializer(source="profile", required=False)
+    profile = UserProfileSerializer(required=False)  # Remove redundant source="profile"
     social_accounts = SocialAccountSerializer(source="profile.social_accounts", many=True, read_only=True)
     
     class Meta(UserDetailsSerializer.Meta):
