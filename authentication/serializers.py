@@ -8,15 +8,26 @@ from allauth.account.utils import setup_user_email
 from allauth.socialaccount.models import SocialAccount
 
 class SocialAccountSerializer(serializers.ModelSerializer):
+    """
+    Serializer for SocialAccount model data
+    """
     class Meta:
         model = SocialAccount
         fields = ('provider', 'uid', 'last_login', 'date_joined')
 
 class CustomRegisterSerializer(RegisterSerializer):
+    """
+    Custom registration serializer with first/last name fields
+    - Extends default registration with additional user info
+    - Handles user creation with profile data
+    """
     first_name = serializers.CharField(required=True, write_only=True)
     last_name = serializers.CharField(required=True, write_only=True)
     
     def get_cleaned_data(self):
+        """
+        Extract and clean registration data
+        """
         return {
             'username': self.validated_data.get('username', ''),
             'password1': self.validated_data.get('password1', ''),
@@ -26,6 +37,9 @@ class CustomRegisterSerializer(RegisterSerializer):
         }
 
     def save(self, request):
+        """
+        Custom save method with name handling
+        """
         adapter = get_adapter()
         user = adapter.new_user(request)
         self.cleaned_data = self.get_cleaned_data()
@@ -37,18 +51,33 @@ class CustomRegisterSerializer(RegisterSerializer):
         return user
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for UserProfile model
+    """
     class Meta:
         model = UserProfile
         fields = ('bio', 'location', 'birth_date', 'profile_picture')
 
 class CustomUserDetailsSerializer(UserDetailsSerializer):
-    profile = UserProfileSerializer(required=False)  # Remove redundant source="profile"
-    social_accounts = SocialAccountSerializer(source="profile.social_accounts", many=True, read_only=True)
+    """
+    Extended user details serializer with profile data
+    - Combines user data with profile and social accounts
+    - Handles nested profile updates
+    """
+    profile = UserProfileSerializer(required=False)
+    social_accounts = SocialAccountSerializer(
+        source="profile.social_accounts",
+        many=True,
+        read_only=True
+    )
     
     class Meta(UserDetailsSerializer.Meta):
         fields = UserDetailsSerializer.Meta.fields + ('profile', 'social_accounts')
     
     def update(self, instance, validated_data):
+        """
+        Handle nested profile updates
+        """
         profile_data = validated_data.pop('profile', {})
         instance = super().update(instance, validated_data)
         
