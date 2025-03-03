@@ -3,17 +3,21 @@ from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 
+# Load environment variables
 load_dotenv()
 
+# Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = True
+# Security settings
+SECRET_KEY = os.getenv('SECRET_KEY')  # Secret key from environment
+JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')  # JWT secret key
+DEBUG = True  # Debug mode (set to False in production)
+ALLOWED_HOSTS = []  # Allowed hosts for the application
 
-ALLOWED_HOSTS = []
-
+# Installed apps
 INSTALLED_APPS = [
-    #Django apps
+    # Django core apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -21,24 +25,26 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    
+
     # Third-party apps
     'rest_framework',
-    'rest_framework.authtoken', 
-    'allauth',                   
-    'allauth.account',           
-    'allauth.socialaccount', 
-    'dj_rest_auth',                 
+    'rest_framework.authtoken',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'dj_rest_auth',
     'dj_rest_auth.registration',
-    
+
     # Social account providers
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
-    
-    # Custom-created apps
+    'allauth.socialaccount.providers.github',
+
+    # Custom apps
     'authentication',
 ]
 
+# Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -50,8 +56,10 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
 ]
 
+# Root URL configuration
 ROOT_URLCONF = 'django_auth.urls'
 
+# Templates
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -68,10 +76,10 @@ TEMPLATES = [
     },
 ]
 
+# WSGI application
 WSGI_APPLICATION = 'django_auth.wsgi.application'
 
-
-# Database
+# Database configuration
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -101,21 +109,20 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# Static files
 STATIC_URL = 'static/'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Django AllAuth settings
-SITE_ID = 1
-
+SITE_ID = 1  # Site ID for allauth
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# AllAuth settings
+# AllAuth account settings
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
@@ -125,7 +132,7 @@ ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = None
 
-# Social login providers settings
+# Social account providers
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
@@ -133,13 +140,8 @@ SOCIALACCOUNT_PROVIDERS = {
             'secret': os.getenv('GOOGLE_CLIENT_SECRET'),
             'key': ''
         },
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        }
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
     },
     'facebook': {
         'APP': {
@@ -150,24 +152,25 @@ SOCIALACCOUNT_PROVIDERS = {
         'METHOD': 'oauth2',
         'SCOPE': ['email', 'public_profile'],
         'FIELDS': [
-            'id',
-            'email',
-            'name',
-            'first_name',
-            'last_name',
-            'verified',
-            'locale',
-            'timezone',
-            'link',
-            'picture',
+            'id', 'email', 'name', 'first_name', 'last_name',
+            'verified', 'locale', 'timezone', 'link', 'picture',
         ],
         'EXCHANGE_TOKEN': True,
         'VERIFIED_EMAIL': False,
         'VERSION': 'v13.0',
+    },
+        'github': {
+        'APP': {
+            'client_id': os.getenv('GITHUB_CLIENT_ID'), 
+            'secret': os.getenv('GITHUB_CLIENT_SECRET'),
+            'key': ''
+        },
+        'SCOPE': ['user:email'],
+        'AUTH_PARAMS': {
+            'allow_signup': 'true'
+        }
     }
 }
-
-
 
 # REST Framework settings
 REST_FRAMEWORK = {
@@ -184,7 +187,7 @@ REST_AUTH = {
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'auth',
     'JWT_AUTH_REFRESH_COOKIE': 'refresh-token',
-    'JWT_AUTH_SECURE': False, # Set to True in production  
+    'JWT_AUTH_SECURE': False,  # Set to True in production
     'JWT_AUTH_HTTPONLY': True,
     'JWT_AUTH_SAMESITE': 'Lax',
     'SESSION_LOGIN': False,
@@ -197,34 +200,33 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': False,
-
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
+    'SIGNING_KEY': JWT_SECRET_KEY,
     'VERIFYING_KEY': None,
     'AUDIENCE': None,
     'ISSUER': None,
-
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
-
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
-
     'JTI_CLAIM': 'jti',
-
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
-    
 }
 
+# Email settings (for development)
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
 # Email settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_USE_SSL = False
+# EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+# EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+
+
